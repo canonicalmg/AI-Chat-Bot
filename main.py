@@ -145,36 +145,39 @@ class ChatBot:
                                        )
         return response
 
-    def set_name(self, sentence):
-        GREETINGS_WITH_NAME = [
-            "I am very pleased to meet you, {name}.",
-            "Wow, I knew someone named {name} once.",
-            "{name}? I guess it could be worse..."
-        ]
-        SET_NAME_ERROR = [
-            "By the way, I asked what your name was...",
-            "Also, I'm not sure if I understand... What is your name?",
-            "Hey so I don't even know your name... Try saying 'My name is %s'." % self.name
-        ]
-        sentence = sentence['sentence']
-        name_found = False
+    GREETINGS_WITH_NAME = [
+        "I am very pleased to meet you, {name}.",
+        "Wow, I knew someone named {name} once.",
+        "{name}? I guess it could be worse..."
+    ]
+    SET_NAME_ERROR = [
+        "By the way, I asked what your name was...",
+        "Also, I'm not sure if I understand... What is your name?",
+        "Hey so I don't even know your name... Try saying 'My name is {name}'."
+    ]
+
+    def set_name(self, input_dict):
+        """
+        This function sets the user's name based on their input.
+        :param input_dict: A dictionary containing the user's input.
+        :return: A response string.
+        """
+        # Extract the sentence from the input dictionary
+        sentence = input_dict['sentence']
         response = ""
-        for thing in sentence.tags:
-            if thing[1] == u'NNP':
-                name_found = True
-                self.conversation_stack.user_name = thing[0]
-                response = random.choice(GREETINGS_WITH_NAME).format(**{"name": thing[0].capitalize()})
-                self.conversation_stack.clear_tasks("Name Enquiry")
-        if name_found == False:
-            response = "%s\n%s: %s" % (self.respond_to_input(self.conversation_stack.get_latest_user_input()),
-                                        self.name,
-                                        random.choice(SET_NAME_ERROR)
-                                        )
+
+        # Check if the sentence contains a proper noun (NNP)
+        names = [thing[0] for thing in sentence.tags if thing[1] == 'NNP']
+
+        # If a name was found, set the user's name and generate a greeting
+        if names:
+            self.conversation_stack.user_name = names[0]
+            response = random.choice(self.GREETINGS_WITH_NAME).format(name=names[0].capitalize())
+            self.conversation_stack.clear_tasks("Name Enquiry")
+        else:
+            # If no name was found, generate an error message
+            response = f"{self.respond_to_input(self.conversation_stack.get_latest_user_input())}\n{self.name}: {random.choice(self.SET_NAME_ERROR)}"
+
         return response
-
-
-
-
-
 
 c = ChatBot("Bob")
