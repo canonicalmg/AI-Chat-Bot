@@ -19,9 +19,17 @@ class UserInput:
         self.subject = self.get_or_create_subject()
 
     def check_for_interesting_info(self):
+        """
+        This function checks for interesting information in the parsed data.
+        It iterates over the pos_tags of the parsed data and if the part of speech is 'VBG', 
+        it appends the word to the interesting_stack of the conversation_stack.
+        """
         for word, part_of_speech in self.parsed.pos_tags:
+            # Loop through each word and its part of speech in the parsed data
             if part_of_speech in ["VBG"]:
+                # If the part of speech is 'VBG' (gerund or present participle), consider it as interesting
                 self.conversation_stack.interesting_stack.append(word)
+                # Append the interesting word to the conversation stack
 
     def get_or_create_pronoun(self):
         try:
