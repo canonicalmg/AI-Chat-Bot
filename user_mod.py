@@ -24,15 +24,16 @@ class UserInput:
                 self.conversation_stack.interesting_stack.append(word)
 
     def get_or_create_pronoun(self):
-        try:
-            return self.pronoun
-        except AttributeError:
-            pronouns = []
-            for word, part_of_speech in self.parsed.pos_tags:
-                if part_of_speech in ["PRP", "PRP$", "WP", "WP$"]:
-                    pronouns.append(word)
+        if not hasattr(self, 'pronoun'):
+            self.pronoun = []
+        if not hasattr(self, 'parsed'):
+            self.parsed = {'pos_tags': []}
 
-            return pronouns
+        for word, part_of_speech in self.parsed['pos_tags']:
+            if part_of_speech in ["PRP", "PRP$", "WP", "WP$"]:
+                self.pronoun.append(word)
+
+        return self.pronoun
 
     def get_or_create_noun(self):
         try:
