@@ -24,14 +24,25 @@ class UserInput:
                 self.conversation_stack.interesting_stack.append(word)
 
     def get_or_create_pronoun(self):
+        """
+        This function is used to get or create pronouns from the parsed parts of speech tags.
+        If the pronoun attribute exists, it returns the pronoun. 
+        If the pronoun attribute does not exist, it creates a list of pronouns from the parsed parts of speech tags.
+        The function returns the list of pronouns.
+        """
         try:
+            # If the pronoun attribute exists, return it
             return self.pronoun
         except AttributeError:
+            # If the pronoun attribute does not exist, create a list of pronouns
             pronouns = []
             for word, part_of_speech in self.parsed.pos_tags:
+                # Check if the part of speech is a pronoun
                 if part_of_speech in ["PRP", "PRP$", "WP", "WP$"]:
+                    # If the part of speech is a pronoun, append it to the list of pronouns
                     pronouns.append(word)
 
+            # Return the list of pronouns
             return pronouns
 
     def get_or_create_noun(self):
