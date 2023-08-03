@@ -5,15 +5,6 @@ import random
 import convo
 import user_mod
 
-""" TODO: write a dictionary of potential phrases to say based on which parts of speech are available in a sentence.
-Keep track of how often each phrase is used, if multiple phrases can be returned then return the one with the lowest count
-"""
-
-"""
-Could the bot attempt to learn the "WHO WHAT WHEN WHERE WHY HOW" about a topic? 
-It could possibly try and infer emotion about the topic as well
-"""
-
 class ChatBot:
 
     def __init__(self, name):
@@ -32,12 +23,10 @@ class ChatBot:
     def respond(self):
         user_input = self.conversation_stack.get_latest_user_input()
         response = None
-        # check task stack to see if we are waiting for something
         if self.conversation_stack.task_stack:
             task = self.conversation_stack.task_stack[-1]
             response = self.mapTask(task, sentence=user_input.parsed)
 
-        # try and respond to the last thing that the user said
         if not response:
             response = self.respond_to_input(user_input)
 
@@ -45,7 +34,6 @@ class ChatBot:
         self.printResponse(response)
 
     def respond_to_input(self, sentence):
-        # take last input which was not responded to
         response = None
 
         if not response:
@@ -65,7 +53,6 @@ class ChatBot:
                     else:
                         response = "Dude what are you even saying?"
                 else:
-                    # ask user about themselves
                     if self.conversation_stack.task_stack == []:
                         response = self.conversation_stack.learn_user()
 
@@ -97,13 +84,12 @@ class ChatBot:
 
         return response
 
-
     def printResponse(self, response):
         print "%s: %s" % (self.name, response)
 
     def mapTask(self, task, **kwargs):
         mapper = [
-            {"type": "Name Enquiry", "action": lambda f: self.set_name(kwargs)},
+            {"type": "Name Enquiry", "action": lambda f: self.update_name(kwargs)},
             {"type": "City Enquiry", "action": lambda f: self.set_city(kwargs)}
         ]
         for eachMap in mapper:
@@ -145,36 +131,31 @@ class ChatBot:
                                        )
         return response
 
-    def set_name(self, sentence):
-        GREETINGS_WITH_NAME = [
-            "I am very pleased to meet you, {name}.",
-            "Wow, I knew someone named {name} once.",
-            "{name}? I guess it could be worse..."
+    def update_name(self, input_data):
+        greetings_with_name = [
+            "Delighted to meet you, {name}.",
+            "Interesting, I once knew a {name}.",
+            "{name}? That's a unique name..."
         ]
-        SET_NAME_ERROR = [
-            "By the way, I asked what your name was...",
-            "Also, I'm not sure if I understand... What is your name?",
-            "Hey so I don't even know your name... Try saying 'My name is %s'." % self.name
+        name_error_messages = [
+            "I'm sorry, could you tell me your name again?",
+            "I didn't quite catch that... What's your name?",
+            "I'm still not sure of your name... Could you say 'My name is %s'?" % self.name
         ]
-        sentence = sentence['sentence']
-        name_found = False
-        response = ""
-        for thing in sentence.tags:
-            if thing[1] == u'NNP':
-                name_found = True
-                self.conversation_stack.user_name = thing[0]
-                response = random.choice(GREETINGS_WITH_NAME).format(**{"name": thing[0].capitalize()})
+        input_sentence = input_data['sentence']
+        is_name_identified = False
+        reply = ""
+        for item in input_sentence.tags:
+            if item[1] == u'NNP':
+                is_name_identified = True
+                self.conversation_stack.user_name = item[0]
+                reply = random.choice(greetings_with_name).format(**{"name": item[0].capitalize()})
                 self.conversation_stack.clear_tasks("Name Enquiry")
-        if name_found == False:
-            response = "%s\n%s: %s" % (self.respond_to_input(self.conversation_stack.get_latest_user_input()),
-                                        self.name,
-                                        random.choice(SET_NAME_ERROR)
-                                        )
-        return response
-
-
-
-
-
+        if not is_name_identified:
+            reply = "%s\n%s: %s" % (self.respond_to_input(self.conversation_stack.get_latest_user_input()),
+                                    self.name,
+                                    random.choice(name_error_messages)
+                                    )
+        return reply
 
 c = ChatBot("Bob")
